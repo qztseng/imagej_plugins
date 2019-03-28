@@ -9,9 +9,9 @@ import ij.plugin.filter.MaximumFinder;
 import ij.measure.ResultsTable;
 import java.awt.image.BufferedImage;
 import java.nio.FloatBuffer;
-
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import org.bytedeco.javacv.*;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
 
 
 /*
@@ -22,6 +22,7 @@ import static com.googlecode.javacv.cpp.opencv_imgproc.*;
  * It supports 8 bit and 16 bit grayscale only. 
  * 
  * 2013/05/14 Add support for 32bit grayscale
+ * 2015/02/06 Update to latest javacv v0.10
  * 
  * By TSENG Qingzong (qztseng /at/ gmail dot com) 
  */
