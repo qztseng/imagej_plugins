@@ -1,0 +1,15 @@
+set PATH=%PATH%;c:\JDK\tools\bin 
+cd c:\Users\0118\Downloads\logpolarfft
+
+javac -source 1.8 -target 1.8 -Xlint -d . -classpath c:/Users/0118/AppData/Roaming/ImageJ/ij.jar;c:/Users/0118/Downloads/javacv-platform-1.4.4-bin/javacv-bin/*; logpolar_match.java
+
+jar -uvf LP_Matching.jar LPMatching\*
+
+copy LP_Matching.jar c:\Users\0118\AppData\Roaming\ImageJ\plugins\
+
+
+
+javac -source 1.6 -target 1.6 -Xlint -d . -classpath c:/Users/0118/AppData/Roaming/ImageJ/ij.jar; FFTFilter.java
+jar -uvf c:/Users/0118/AppData/Roaming/ImageJ/ij.jar ij/plugin/filter/FFTFilter.class
+
+javac -source 1.8 -target 1.8 -Xlint -d . -classpath c:/Users/0118/AppData/Roaming/ImageJ/ij.jar;c:/Users/0118/Downloads/javacv-platform-1.4.4-bin/javacv-bin/*; HLpassFilters3_.java
