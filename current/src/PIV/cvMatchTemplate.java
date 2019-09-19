@@ -4,9 +4,12 @@ import ij.*;
 import ij.process.*;
 import java.awt.image.BufferedImage;
 import java.nio.FloatBuffer;
+import org.bytedeco.javacv.*;
+import org.bytedeco.javacpp.*;
 import org.bytedeco.javacv.Java2DFrameUtils;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
+
 
 /*
 this class implement the template match method from OpenCV library. The interface between OpenCV and Java is 
@@ -21,8 +24,13 @@ By TSENG Qingzong (qztseng /at/ gmail.com)
 */
 public class cvMatchTemplate {
 
-
-    public static FloatProcessor doMatch(ImageProcessor src, ImageProcessor tpl, int method, boolean showR) {
+	public static void init(){
+		
+		Loader.load(opencv_core.class);         //call the loader before calling opencv core functions
+		
+	} 
+    
+	public static FloatProcessor doMatch(ImageProcessor src, ImageProcessor tpl, int method, boolean showR) {
 
         BufferedImage bi = null, bi2 = null;
         FloatProcessor resultFp = null;
@@ -33,7 +41,7 @@ public class cvMatchTemplate {
         IplImage temp, temp2,res;
         IplImage iplSrc = null;
         IplImage iplTpl = null;
-        
+		
         switch (src.getBitDepth()) {
 
             case 32:
@@ -42,27 +50,23 @@ public class cvMatchTemplate {
                 double[] dArr1 = float2DtoDouble1DArray(src.getFloatArray(), srcW, srcH);
                 srcMat.put(0, dArr1, 0, dArr1.length);
                 iplSrc = srcMat.asIplImage();
-                //iplSrc = temp.clone();
                 
                 //convert template imageProcessor into iplImage
                 CvMat tplMat = CvMat.create(tplH, tplW, CV_32FC1);
                 double[] dArr2 = float2DtoDouble1DArray(tpl.getFloatArray(), tplW, tplH);
                 tplMat.put(0, dArr2, 0, dArr2.length);
                 iplTpl = tplMat.asIplImage();
-                //iplTpl = temp2.clone();
                 
                 break;
             case 16:
                 //since cvMatchTemplate don't accept 16bit image, we have to convert it to 32bit
                 iplSrc = cvCreateImage(cvSize(srcW, srcH), IPL_DEPTH_32F, 1);
                 bi = ((ShortProcessor) src).get16BitBufferedImage();
-                //temp = IplImage.createFrom(bi);
                 temp = Java2DFrameUtils.toIplImage(bi);
                 cvConvertScale(temp, iplSrc, 1 / 65535.0, 0);
 
                 iplTpl = cvCreateImage(cvSize(tplW, tplH), IPL_DEPTH_32F, 1);
                 bi2 = ((ShortProcessor) tpl).get16BitBufferedImage();
-                //temp2 = IplImage.createFrom(bi2);
                 temp2 = Java2DFrameUtils.toIplImage(bi2);
                 cvConvertScale(temp2, iplTpl, 1 / 65535.0, 0);
 
@@ -73,11 +77,9 @@ public class cvMatchTemplate {
             case 8:
 
                 bi = src.getBufferedImage();
-                //iplSrc = IplImage.createFrom(bi);
                 iplSrc = Java2DFrameUtils.toIplImage(bi);
 
                 bi2 = tpl.getBufferedImage();
-                //iplTpl = IplImage.createFrom(bi2);
                 iplTpl = Java2DFrameUtils.toIplImage(bi2);
 
                 break;

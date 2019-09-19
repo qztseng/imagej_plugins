@@ -633,6 +633,8 @@ public class iterative_PIV implements PlugInFilter {
                 return false;
             }
         }
+		
+		if(!xc) cvMatchTemplate.init();  //initialize the javacv library
 
         return true;
     }
