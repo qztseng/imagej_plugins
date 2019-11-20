@@ -172,8 +172,8 @@ public class Align_slices implements PlugInFilter {
                 disX = rect.x - dxdy[0];
                 disY = rect.y - dxdy[1];
             }else{
-                disX = sArea + sAreaShift[0] - dxdyG[0];
-                disY = sArea + sAreaShift[1] - dxdyG[1];
+                disX = sArea + sAreaShift[0] - dxdy[0];
+                disY = sArea + sAreaShift[1] - dxdy[1];
             }
         }
 
