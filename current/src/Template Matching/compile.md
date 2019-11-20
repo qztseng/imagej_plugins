@@ -1,4 +1,5 @@
 javac -source 1.8 -target 1.8 -d . -cp $PATH_OF_IJ.JAR/ij.jar:$PATH_OF_JAVACV_JARS/*:. *.java
+
 jar -cvf Template_Matching.jar plugins.config ./TemplateMatching/
 
 $PATH_OF_IJ.JAR and $PATH_OF_JAVACV_JARS should be the folder where you have the ij.jar and the opencv/javacv library jars. 
