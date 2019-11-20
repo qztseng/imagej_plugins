@@ -121,6 +121,7 @@ public class Align_slices implements PlugInFilter {
     private void alignSlices(int slice) {
 
         int[] dxdy = new int[2];
+        int[] sAreaShift = {0,0};
         boolean edge = false;
 
         tar = stack.getProcessor(slice);
@@ -132,16 +133,18 @@ public class Align_slices implements PlugInFilter {
             int sWY = rect.height + 2 * sArea;
 
             if (xStart < 0) {
+                sAreaShift[0] = xStart;
                 xStart = 0;
             }
             if (yStart < 0) {
+                sAreaShift[1] = yStart;
                 yStart = 0;
             }
             if (xStart + sWX > width) {
-                xStart = width - sWX;
+                sWX = width - xStart;
             }
             if (yStart + sWY > height) {
-                yStart = height - sWY;
+                sWY = height - yStart;
             }
             tar.setRoi(xStart, yStart, sWX, sWY);
 
@@ -160,8 +163,8 @@ public class Align_slices implements PlugInFilter {
                 disX = rect.x - dxdyG[0];
                 disY = rect.y - dxdyG[1];
             }else{
-                disX = sArea - dxdyG[0];
-                disY = sArea - dxdyG[1];
+                disX = sArea + sAreaShift[0] - dxdyG[0];
+                disY = sArea + sAreaShift[1] - dxdyG[1];
             }
             tar.setInterpolationMethod(itpMethod);
         } else {
@@ -169,8 +172,8 @@ public class Align_slices implements PlugInFilter {
                 disX = rect.x - dxdy[0];
                 disY = rect.y - dxdy[1];
             }else{
-                disX = sArea - dxdy[0];
-                disY = sArea - dxdy[1];
+                disX = sArea + sAreaShift[0] - dxdyG[0];
+                disY = sArea + sAreaShift[1] - dxdyG[1];
             }
         }
 
