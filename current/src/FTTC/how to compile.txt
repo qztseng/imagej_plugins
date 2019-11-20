@@ -1,0 +1,3 @@
+javac -d . -cp /Applications/ImageJ/ij.jar plot_FTTC.java 
+javac -d . -cp /Applications/ImageJ/ij.jar:. FTTC_.java 
+jar cf FTTC_.jar ./edu ./Jama/ ./FTTC
