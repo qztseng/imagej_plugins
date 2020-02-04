@@ -177,11 +177,11 @@ public class iterative_PIV implements PlugInFilter {
             }
         }else if (ppMethod != "None") {  //In batch mode and post-processing != None
             PIVdata1 = pivPostProcess_batch(PIVdata);
-			sb = generatePIVToPrint(PIVdata1);
+	    sb = generatePIVToPrint(PIVdata1);
             write2File(dir, title + sf+"_"+ppMethod+"_disp.txt", sb.toString());
         }else{
-			//In batch mode but without post-processing --> Do Nothing
-		}
+	    //In batch mode but without post-processing --> Do Nothing
+	}
         
         imp.changes = false;
         IJ.freeMemory();
@@ -195,7 +195,6 @@ public class iterative_PIV implements PlugInFilter {
         for (int i = 0; i < _PIVa.length; i++) {
             System.arraycopy(_PIV[i], 0, _PIVa[i], 0, _PIV[i].length);
         }
-
 
         if (db) {
             // show a waitForUser dialog, so that we can check the vector and the log value
@@ -259,23 +258,22 @@ public class iterative_PIV implements PlugInFilter {
 
     private double[][] pivPostProcess_batch(double[][] _PIV) {
 
-		double[][] _PIVa = new double[_PIV.length][_PIV[0].length];
+	double[][] _PIVa = new double[_PIV.length][_PIV[0].length];
         for (int i = 0; i < _PIVa.length; i++) {
             System.arraycopy(_PIV[i], 0, _PIVa[i], 0, _PIV[i].length);
         }
 
-		if(ppMethod=="NMT") {
-			_PIVa = normalizedMedianTest(_PIVa, noiseNMT1, thrNMT1);
-				_PIVa = replaceByMedian(_PIVa);
-		}else{
-			_PIVa = dynamicMeanTest(_PIVa, c1DMT, c2DMT);
-				_PIVa = replaceByMedian(_PIVa);
-		}
-		
-		return _PIVa;
+	if(ppMethod=="NMT") {
+	    _PIVa = normalizedMedianTest(_PIVa, noiseNMT1, thrNMT1);
+	    _PIVa = replaceByMedian(_PIVa);
+	}else{
+	    _PIVa = dynamicMeanTest(_PIVa, c1DMT, c2DMT);
+	    _PIVa = replaceByMedian(_PIVa);
+	}
+
+	return _PIVa;
     }
 	
-
     private void plotPIV(double[][] PIV, String title, boolean scaleGraph) {
 
         ImageProcessor ip = new ColorProcessor(width, height);
@@ -368,8 +366,8 @@ public class iterative_PIV implements PlugInFilter {
         gd.addCheckbox("Don't replace invalid vector by median?", false);
         //gd.addCheckbox("Find maximum correlation at edge?", false);
         gd.addCheckbox("batch mode?", false);
-		gd.addChoice("Postprocessing", (new String[]{"None", "NMT", "DMT"}), "None");
-		gd.addNumericField("Postprocessing parameter1", 0.2, 2);
+	gd.addChoice("Postprocessing", (new String[]{"None", "NMT", "DMT"}), "None");
+	gd.addNumericField("Postprocessing parameter1", 0.2, 2);
         gd.addNumericField("Postprocessing parameter1", 5, 2);
         if (dir.equals("")) {
             dir = "/";
@@ -397,16 +395,16 @@ public class iterative_PIV implements PlugInFilter {
         //edgeUser = gd.getNextBoolean();
         batch = gd.getNextBoolean();
         ppMethod = gd.getNextChoice();
-		pp1 = (double) gd.getNextNumber();
-		pp2 = (double) gd.getNextNumber();
-		if (ppMethod=="NMT"){
-			noiseNMT1 = pp1;
-			thrNMT1 = pp2;
-		}else{
-			c1DMT = pp1;
-			c2DMT = pp2;
-		}
-		dir = gd.getNextString();
+	pp1 = (double) gd.getNextNumber();
+	pp2 = (double) gd.getNextNumber();
+	if (ppMethod=="NMT"){
+		noiseNMT1 = pp1;
+		thrNMT1 = pp2;
+	}else{
+		c1DMT = pp1;
+		c2DMT = pp2;
+	}
+	dir = gd.getNextString();
 
         /*determine the number of PIV iteration*/
         if (vecS3 == 0 || sW3 == 0 || winS3 == 0) {
