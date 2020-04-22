@@ -87,7 +87,7 @@ public class cvMatch_Template implements PlugIn {
         /*
          ** start matching
          */
-		long startTime = System.currentTimeMillis();
+	long startTime = System.currentTimeMillis();
         FloatProcessor rFp = doMatch(img1, img2, method, showR);
         long elapsedTime = System.currentTimeMillis() - startTime;
 
@@ -229,9 +229,9 @@ public class cvMatch_Template implements PlugIn {
         int tplW = tpl.getWidth();
         int tplH = tpl.getHeight();
         
-		Loader.load(opencv_core.class);         //call the loader before calling opencv core functions
+	Loader.load(opencv_core.class);         //call the loader before calling opencv core functions
 			
-		IplImage temp, temp2,res;
+	IplImage temp, temp2,res;
         IplImage iplSrc = null;
         IplImage iplTpl = null;
                 
