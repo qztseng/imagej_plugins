@@ -25,6 +25,8 @@ public class iterative_PIV implements PlugInFilter {
     private static double cThr;     // correlation peak threshold
     boolean db = false, batch;
     boolean pp = false, dCanceled = false, xc = true , chkPeakA = false, noChkPeak = false;
+    String ppMethod;
+    double pp1, pp2;
     int dbX = -1, dbY = -1;
     private static String dir = "";
 
@@ -67,6 +69,11 @@ public class iterative_PIV implements PlugInFilter {
             }
         }else if(arg.equals("Basic")){
             if (!getParamsB()) {
+                imp.changes = false;
+                return;
+            }
+        }else if(arg.equals("Debug")){
+            if (!getParamsD()) {
                 imp.changes = false;
                 return;
             }
@@ -127,9 +134,7 @@ public class iterative_PIV implements PlugInFilter {
             }
 
             /*The main PIV function*/
-            IJ.log("T1");
             PIVdata = doPIV(imp, winS, vecS, sW, PIV0);
-            IJ.log("T2");
             //sb = generatePIVToPrint(PIVdata);
             //write2File(dir, title +"_PIVtemp0.txt", sb.toString());
             //IJ.log("before");
@@ -170,12 +175,13 @@ public class iterative_PIV implements PlugInFilter {
                 IJ.log(""+title+sf+":");
                 logPIV(PIVdata1);
             }
+        }else if (ppMethod != "None") {  //In batch mode and post-processing != None
+            PIVdata1 = pivPostProcess_batch(PIVdata);
+	    sb = generatePIVToPrint(PIVdata1);
+            write2File(dir, title + sf+"_"+ppMethod+"_disp.txt", sb.toString());
         }else{
-            if (dCanceled) {
-                IJ.log(""+title+sf+":");
-                logPIV(PIVdata1);
-            }
-        }
+	    //In batch mode but without post-processing --> Do Nothing
+	}
         
         imp.changes = false;
         IJ.freeMemory();
@@ -189,7 +195,6 @@ public class iterative_PIV implements PlugInFilter {
         for (int i = 0; i < _PIVa.length; i++) {
             System.arraycopy(_PIV[i], 0, _PIVa[i], 0, _PIV[i].length);
         }
-
 
         if (db) {
             // show a waitForUser dialog, so that we can check the vector and the log value
@@ -251,6 +256,24 @@ public class iterative_PIV implements PlugInFilter {
 
     }
 
+    private double[][] pivPostProcess_batch(double[][] _PIV) {
+
+	double[][] _PIVa = new double[_PIV.length][_PIV[0].length];
+        for (int i = 0; i < _PIVa.length; i++) {
+            System.arraycopy(_PIV[i], 0, _PIVa[i], 0, _PIV[i].length);
+        }
+
+	if(ppMethod=="NMT") {
+	    _PIVa = normalizedMedianTest(_PIVa, noiseNMT1, thrNMT1);
+	    _PIVa = replaceByMedian(_PIVa);
+	}else{
+	    _PIVa = dynamicMeanTest(_PIVa, c1DMT, c2DMT);
+	    _PIVa = replaceByMedian(_PIVa);
+	}
+
+	return _PIVa;
+    }
+	
     private void plotPIV(double[][] PIV, String title, boolean scaleGraph) {
 
         ImageProcessor ip = new ColorProcessor(width, height);
@@ -283,10 +306,11 @@ public class iterative_PIV implements PlugInFilter {
         }
         
     }
-
+    
+    /*The dialog for PIV Advanced Mode*/
     private boolean getParamsA() {
 
-        GenericDialog gd = new GenericDialog("Iterative PIV (Advanced)");
+        GenericDialog gd = new GenericDialog("Iterative PIV (Advanced Mode)");
         gd.addCheckbox("Load file as 0th pass PIV data?", false);
         gd.addMessage("(All sizes are in pixels)");
         gd.addMessage("1st pass PIV parameters:");
@@ -341,11 +365,10 @@ public class iterative_PIV implements PlugInFilter {
         gd.addCheckbox("Disable all peak checking?", false);
         gd.addCheckbox("Don't replace invalid vector by median?", false);
         //gd.addCheckbox("Find maximum correlation at edge?", false);
-        gd.addMessage("-----------------------");
-        gd.addCheckbox("debug?", false);
-        gd.addNumericField("debug_X", -1, 0);
-        gd.addNumericField("debug_Y", -1, 0);
         gd.addCheckbox("batch mode?", false);
+	gd.addChoice("Postprocessing", (new String[]{"None", "NMT", "DMT"}), "None");
+	gd.addNumericField("Postprocessing parameter1", 0.2, 2);
+        gd.addNumericField("Postprocessing parameter1", 5, 2);
         if (dir.equals("")) {
             dir = "/";
         }
@@ -370,11 +393,18 @@ public class iterative_PIV implements PlugInFilter {
         noChkPeak = gd.getNextBoolean();
         pp = gd.getNextBoolean();
         //edgeUser = gd.getNextBoolean();
-        db = gd.getNextBoolean();
-        dbX = (int) gd.getNextNumber();
-        dbY = (int) gd.getNextNumber();
         batch = gd.getNextBoolean();
-        dir = gd.getNextString();
+        ppMethod = gd.getNextChoice();
+	pp1 = (double) gd.getNextNumber();
+	pp2 = (double) gd.getNextNumber();
+	if (ppMethod=="NMT"){
+		noiseNMT1 = pp1;
+		thrNMT1 = pp2;
+	}else{
+		c1DMT = pp1;
+		c2DMT = pp2;
+	}
+	dir = gd.getNextString();
 
         /*determine the number of PIV iteration*/
         if (vecS3 == 0 || sW3 == 0 || winS3 == 0) {
@@ -405,7 +435,8 @@ public class iterative_PIV implements PlugInFilter {
 
         return true;
     }
-
+	
+    /*The dialog for Basic PIV mode*/
     private boolean getParamsB() {
 
         GenericDialog gd = new GenericDialog("Iterative PIV (Basic)");
@@ -484,8 +515,9 @@ public class iterative_PIV implements PlugInFilter {
         }
 
         return true;
-    }
+    }    
     
+    /*The dialog for Cross-correlation PIV */    
     private boolean getParamsC() {
 
         GenericDialog gd = new GenericDialog("Iterative PIV (Cross-Correlation)");
@@ -534,6 +566,111 @@ public class iterative_PIV implements PlugInFilter {
         }
 
         if (gd.wasCanceled()) {
+            return false;
+        }
+
+        return true;
+    }
+    
+    /*The dialog for debugging PIV */
+    private boolean getParamsD() {
+
+        GenericDialog gd = new GenericDialog("Iterative PIV (Debug mode)");
+        gd.addMessage("(All sizes are in pixels)");
+        gd.addMessage("1st pass PIV parameters:");
+        if (winS1 == 0) {
+            winS1 = 128;
+        }
+        gd.addNumericField("PIV1 interrogation window size", winS1, 0);
+        if (sW1 == 0) {
+            sW1 = 256;
+        }
+        gd.addMessage("(If search window size=window size, conventional xcorr will be used)");
+        gd.addNumericField("SW1 :search window size", sW1, 0);
+        if (vecS1 == 0) {
+            vecS1 = 64;
+        }
+        gd.addNumericField("VS1 :Vector spacing", vecS1, 0);
+        
+        gd.addMessage("-----------------------");
+        gd.addMessage("2nd pass PIV parameters: (set window size to zero to do only 1pass PIV)");
+        if (winS2 == 0) {
+            winS2 = 64;
+        }
+        gd.addNumericField("PIV2 interrogation window size", winS2, 0);
+        if (sW2 == 0) {
+            sW2 = 128;
+        }
+        gd.addNumericField("SW2 :search window size", sW2, 0);
+        if (vecS2 == 0) {
+            vecS2 = 32;
+        }
+        gd.addNumericField("VS2 :Vector spacing", vecS2, 0);
+        gd.addMessage("-----------------------");
+        gd.addMessage("3rd pass PIV parameters: (set window size to zero to do only 2pass PIV)");
+        if (winS3 == 0) {
+            winS3 = 48;
+        }
+        gd.addNumericField("PIV3 interrogation window size", winS3, 0);
+        if (sW3 == 0) {
+            sW3 = 128;
+        }
+        gd.addNumericField("SW3 :search window size", sW3, 0);
+        if (vecS3 == 0) {
+            vecS3 = 16;
+        }
+        gd.addNumericField("VS3 :Vector spacing", vecS3, 0);
+        gd.addMessage("-----------------------");
+        if (cThr == 0.0D) {
+            cThr = 0.60;
+        }
+        gd.addNumericField("correlation threshold", cThr, 2);
+        gd.addCheckbox("Use advanced peak check? (empirical parameters)", false);
+        gd.addCheckbox("Disable all peak checking?", true);
+        gd.addCheckbox("Don't replace invalid vector by median?", true);
+        //gd.addCheckbox("Find maximum correlation at edge?", false);
+        gd.addMessage("-----------------------");
+        gd.addNumericField("debug_X", -1, 0);
+        gd.addNumericField("debug_Y", -1, 0);
+        gd.showDialog();
+
+        winS1 = (int) gd.getNextNumber();
+        sW1 = (int) gd.getNextNumber();
+        vecS1 = (int) gd.getNextNumber();
+
+        winS2 = (int) gd.getNextNumber();
+        sW2 = (int) gd.getNextNumber();
+        vecS2 = (int) gd.getNextNumber();
+
+        winS3 = (int) gd.getNextNumber();
+        sW3 = (int) gd.getNextNumber();
+        vecS3 = (int) gd.getNextNumber();
+
+        cThr = (double) gd.getNextNumber();
+        chkPeakA = gd.getNextBoolean();
+        noChkPeak = gd.getNextBoolean();
+        pp = gd.getNextBoolean();
+        //edgeUser = gd.getNextBoolean();
+        db = true;
+        dbX = (int) gd.getNextNumber();
+        dbY = (int) gd.getNextNumber();
+        batch = false;
+
+        /*determine the number of PIV iteration*/
+        if (vecS3 == 0 || sW3 == 0 || winS3 == 0) {
+            nPass = 2;
+        }
+        if (vecS2 == 0 || sW2 == 0 || winS2 == 0) {
+            nPass = 1;
+        }
+
+        if (!gd.wasCanceled()) {
+           /*check parameters*/
+            if(!checkParams()){
+                IJ.error("Incompatible PIV parameters");
+                return false;
+            }
+        }else{
             return false;
         }
 
@@ -633,8 +770,8 @@ public class iterative_PIV implements PlugInFilter {
                 return false;
             }
         }
-		
-		if(!xc) cvMatchTemplate.init();  //initialize the javacv library
+        
+		//if(!xc) cvMatchTemplate.init();  //initialize the javacv library
 
         return true;
     }
@@ -1903,5 +2040,4 @@ public class iterative_PIV implements PlugInFilter {
         return result;
     }
  
-} // end of class OnePass_PIV
-
+}
