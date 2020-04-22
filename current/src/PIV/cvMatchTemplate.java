@@ -24,10 +24,8 @@ By TSENG Qingzong (qztseng /at/ gmail.com)
 */
 public class cvMatchTemplate {
 
-	public static void init(){
-		
+	static{
 		Loader.load(opencv_core.class);         //call the loader before calling opencv core functions
-		
 	} 
     
 	public static FloatProcessor doMatch(ImageProcessor src, ImageProcessor tpl, int method, boolean showR) {
