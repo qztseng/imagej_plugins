@@ -35,7 +35,10 @@ for(s=1;s<slices;s++){
 	pad = floor(log(slices)/log(10))+1;
 	spad = IJ.pad(s,pad);
 	if(first){
-		run("Duplicate...", "title=FIRST range=1");
+		setSlice(1);
+		run("Duplicate...", "title=FIRST range=1-1");
+		selectImage(id0);
+		setSlice(s+1);
 		run("Duplicate...", "title="+(s+1)+" range="+(s+1)+"");
 		run("Concatenate...", "  image1=FIRST image2="+(s+1)+" image3=[-- None --]");
 		rename("seq_"+spad);
