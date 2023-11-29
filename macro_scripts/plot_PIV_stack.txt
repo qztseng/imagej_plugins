@@ -1,0 +1,41 @@
+Dialog.create("plot PIV stack");
+Dialog.addString("process files with substring:", "PIV2");
+Dialog.addNumber("vector scale", 1);
+Dialog.addNumber("max vector value", 10);
+Dialog.addNumber("plot width", 512);
+Dialog.addNumber("plot height", 512);
+Dialog.show;
+ss = Dialog.getString();
+vScale = Dialog.getNumber();
+maxV = Dialog.getNumber();
+pW = Dialog.getNumber();
+pH = Dialog.getNumber();
+dir = getDirectory("directory of the PIV data");
+listFile = getFileList(dir);
+
+setBatchMode(true);
+
+c = 0;
+List.clear;
+for(i=0;i<listFile.length;i++){
+	if(endsWith(listFile[i],"_disp.txt") && matches(listFile[i],".*"+ss+".*")){
+		//print(list[i]);
+		List.set(c, listFile[i]);
+		c++;
+	}
+}
+
+
+List.toArrays(c,listPIV);
+listPIV = Array.sort(listPIV);
+
+for(l=0;l<listPIV.length;l++){
+	a = dir+listPIV[l];
+	run("plot...", "select=["+dir+listPIV[l]+"] vector_scale="+vScale+" max="+maxV+" plot_width="+pW+" plot_height="+pH+" lut=S_Pet");
+	rename(l+1);
+	setMetadata("Label", listPIV[l]);
+	if(l!=0) {
+		run("Concatenate...", "stack1=1 stack2="+(l+1)+" title=1");
+	}
+}
+setBatchMode("exit and display");
